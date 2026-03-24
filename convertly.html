@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Convertly — Convert Files Instantly</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#EFF6FF;--blue-mid:#DBEAFE;
+  --bg:#F8FAFF;--white:#FFFFFF;--gray-50:#F9FAFB;--gray-100:#F3F4F6;
+  --gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;
+  --gray-500:#6B7280;--gray-700:#374151;--gray-900:#111827;
+  --green:#10B981;--orange:#F59E0B;--red:#EF4444;--purple:#8B5CF6;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(37,99,235,.12);
+  --radius:12px;--radius-sm:8px;--radius-lg:20px;
+  --font-head:'Bricolage Grotesque',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--gray-900);line-height:1.6;min-height:100vh}
+
+/* ─── VIEWS ─── */
+.view{display:none;animation:fadeIn .3s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── NAV ─── */
+nav{background:var(--white);border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:32px}
+.nav-logo{font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo .logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-link{padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;color:var(--gray-700);cursor:pointer;transition:all .2s;border:none;background:none}
+.nav-link:hover{background:var(--gray-100);color:var(--gray-900)}
+.nav-link.active{color:var(--blue)}
+.nav-cta{padding:8px 18px;background:var(--blue);color:white;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:none;margin-left:8px}
+.nav-cta:hover{background:var(--blue-dark);transform:translateY(-1px)}
+.nav-usage{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gray-500);padding:6px 12px;background:var(--gray-100);border-radius:8px}
+.nav-usage .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.nav-usage .dot.warn{background:var(--orange)}
+.nav-usage .dot.danger{background:var(--red)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.hamburger span{width:22px;height:2px;background:var(--gray-700);border-radius:2px;transition:all .3s}
+
+/* ─── HERO ─── */
+.hero{background:var(--white);padding:80px 24px 64px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(37,99,235,.08) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-light);color:var(--blue);font-size:12px;font-weight:600;padding:6px 14px;border-radius:100px;margin-bottom:24px;border:1px solid var(--blue-mid);letter-spacing:.3px}
+.hero h1{font-family:var(--font-head);font-size:clamp(42px,6vw,72px);font-weight:800;line-height:1.1;letter-spacing:-2px;margin-bottom:20px;color:var(--gray-900)}
+.hero h1 span{color:var(--blue)}
+.hero p{font-size:18px;color:var(--gray-500);max-width:520px;margin:0 auto 40px;line-height:1.7}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:64px}
+.btn-primary{padding:14px 28px;background:var(--blue);color:white;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.btn-secondary{padding:14px 28px;background:var(--white);color:var(--gray-700);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--gray-200);display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px)}
+
+/* Flow visual */
+.flow-visual{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;max-width:640px;margin:0 auto}
+.flow-box{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--gray-700);box-shadow:var(--shadow-sm)}
+.flow-box .ficon{font-size:20px}
+.flow-arrow{color:var(--gray-300);font-size:20px}
+.flow-box.highlight{background:var(--blue);color:white;border-color:var(--blue);box-shadow:var(--shadow-lg)}
+
+/* Stats */
+.stats-bar{background:var(--gray-50);border-top:1px solid var(--gray-200);border-bottom:1px solid var(--gray-200);padding:24px}
+.stats-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center}
+.stat-item .num{font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--blue)}
+.stat-item .lbl{font-size:13px;color:var(--gray-500);margin-top:2px}
+
+/* ─── SECTION ─── */
+.section{padding:72px 24px;max-width:1200px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:48px}
+.section-tag{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:100px;margin-bottom:14px}
+.section-title{font-family:var(--font-head);font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-1px;color:var(--gray-900);margin-bottom:12px}
+.section-sub{font-size:16px;color:var(--gray-500);max-width:480px;margin:0 auto}
+
+/* ─── TOOL CATEGORIES ─── */
+.category-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.cat-tab{padding:9px 20px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--gray-200);background:var(--white);color:var(--gray-600)}
+.cat-tab:hover,.cat-tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* ─── TOOL CARDS ─── */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.tool-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;inset:0;background:var(--blue);opacity:0;transition:opacity .25s}
+.tool-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue-mid)}
+.tool-card:hover::before{opacity:.02}
+.tool-card .tc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.tool-card .tc-title{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--gray-900);margin-bottom:6px}
+.tool-card .tc-desc{font-size:13px;color:var(--gray-500);line-height:1.5}
+.tool-card .tc-arrow{position:absolute;top:20px;right:20px;color:var(--gray-300);font-size:16px;transition:all .2s}
+.tool-card:hover .tc-arrow{color:var(--blue);transform:translateX(2px)}
+.badge-free{position:absolute;bottom:16px;right:16px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;background:var(--green);color:white;letter-spacing:.5px}
+
+/* ─── HOW IT WORKS ─── */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.step-card{text-align:center;padding:32px 20px}
+.step-num{width:48px;height:48px;border-radius:12px;background:var(--blue-light);color:var(--blue);font-family:var(--font-head);font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.step-card h3{font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:8px}
+.step-card p{font-size:14px;color:var(--gray-500);line-height:1.6}
+
+/* ─── PRICING ─── */
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:720px;margin:0 auto}
+.plan-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:36px;position:relative;transition:all .25s}
+.plan-card.popular{border-color:var(--blue);box-shadow:var(--shadow-lg)}
+.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--blue);color:white;font-size:11px;font-weight:700;padding:5px 16px;border-radius:100px;letter-spacing:.5px;white-space:nowrap}
+.plan-name{font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px}
+.plan-price{font-family:var(--font-head);font-size:42px;font-weight:800;color:var(--gray-900);line-height:1;margin-bottom:4px}
+.plan-price span{font-size:16px;font-weight:400;color:var(--gray-500)}
+.plan-period{font-size:13px;color:var(--gray-400);margin-bottom:28px}
+.plan-features{list-style:none;margin-bottom:32px;display:flex;flex-direction:column;gap:12px}
+.plan-features li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gray-700)}
+.plan-features li .check{color:var(--green);font-size:16px;flex-shrink:0}
+.plan-features li .cross{color:var(--gray-300);font-size:16px;flex-shrink:0}
+.plan-btn{width:100%;padding:13px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.plan-btn.outline{background:var(--white);color:var(--gray-700);border:1px solid var(--gray-200)}
+.plan-btn.outline:hover{border-color:var(--blue);color:var(--blue)}
+.plan-btn.filled{background:var(--blue);color:white}
+.plan-btn.filled:hover{background:var(--blue-dark);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+
+/* ─── CONVERTER PAGE ─── */
+.converter-page{max-width:760px;margin:0 auto;padding:48px 24px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--gray-500);font-size:14px;font-weight:500;cursor:pointer;padding:8px 0;margin-bottom:32px;transition:color .2s;border:none;background:none}
+.back-btn:hover{color:var(--blue)}
+.converter-header{text-align:center;margin-bottom:40px}
+.converter-header .ch-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.converter-header h2{font-family:var(--font-head);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.converter-header p{font-size:15px;color:var(--gray-500)}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--gray-300);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;cursor:pointer;transition:all .25s;background:var(--white);position:relative}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--blue);background:var(--blue-light)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:40px;margin-bottom:16px;transition:transform .2s}
+.upload-zone:hover .uz-icon{transform:translateY(-4px)}
+.upload-zone h3{font-family:var(--font-head);font-size:17px;font-weight:700;margin-bottom:8px}
+.upload-zone p{font-size:14px;color:var(--gray-400)}
+.upload-zone .limit-note{margin-top:16px;display:inline-flex;align-items:center;gap:6px;background:var(--gray-100);padding:6px 14px;border-radius:100px;font-size:12px;color:var(--gray-500)}
+
+/* File preview */
+.file-preview{display:none;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-top:16px;align-items:center;gap:16px}
+.file-preview.show{display:flex}
+.fp-icon{width:48px;height:48px;background:var(--gray-100);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.fp-icon img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.fp-info{flex:1;min-width:0}
+.fp-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.fp-size{font-size:12px;color:var(--gray-400)}
+.fp-remove{width:32px;height:32px;border-radius:8px;border:1px solid var(--gray-200);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-400);transition:all .2s;flex-shrink:0}
+.fp-remove:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.05)}
+
+/* Format selector */
+.format-section{margin-top:24px;display:none}
+.format-section.show{display:block}
+.fs-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:12px}
+.format-options{display:flex;gap:8px;flex-wrap:wrap}
+.fmt-opt{padding:10px 20px;border-radius:8px;border:1px solid var(--gray-200);background:var(--white);color:var(--gray-600);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+.fmt-opt:hover{border-color:var(--blue);color:var(--blue)}
+.fmt-opt.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* Progress */
+.upload-progress{margin-top:16px;display:none}
+.upload-progress.show{display:block}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500);margin-bottom:6px}
+.progress-track{height:6px;background:var(--gray-200);border-radius:100px;overflow:hidden}
+.progress-bar{height:100%;background:var(--blue);border-radius:100px;width:0%;transition:width .4s ease}
+
+/* Convert btn */
+.convert-btn{width:100%;margin-top:24px;padding:16px;background:var(--blue);color:white;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;border:none;display:none;align-items:center;justify-content:center;gap:10px}
+.convert-btn.show{display:flex}
+.convert-btn:hover{background:var(--blue-dark);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.convert-btn:disabled{background:var(--gray-300);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Result */
+.result-box{margin-top:24px;padding:24px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25);border-radius:var(--radius);display:none;align-items:center;gap:16px}
+.result-box.show{display:flex}
+.rb-icon{font-size:32px;flex-shrink:0}
+.rb-text{flex:1}
+.rb-title{font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px}
+.rb-desc{font-size:13px;color:var(--gray-500)}
+.rb-download{padding:12px 22px;background:var(--green);color:white;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;display:inline-block;flex-shrink:0}
+.rb-download:hover{background:#0da271;transform:translateY(-1px)}
+
+/* Error */
+.error-box{margin-top:16px;padding:14px 18px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-sm);font-size:13px;color:var(--red);display:none}
+.error-box.show{display:block}
+
+/* Text output */
+.text-out{margin-top:20px;display:none}
+.text-out.show{display:block}
+.text-out textarea{width:100%;min-height:200px;border:1px solid var(--gray-200);border-radius:10px;padding:16px;font-size:13px;font-family:monospace;line-height:1.6;resize:vertical;outline:none;color:var(--gray-700);background:var(--white)}
+.text-out textarea:focus{border-color:var(--blue)}
+
+/* Limit warning */
+.limit-bar{background:var(--orange);color:white;padding:10px 24px;font-size:13px;font-weight:500;text-align:center;display:none;align-items:center;justify-content:center;gap:12px}
+.limit-bar.show{display:flex}
+.limit-bar a{color:white;font-weight:700;cursor:pointer;text-decoration:underline}
+
+/* ─── ADMIN ─── */
+.admin-layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 64px)}
+.admin-sidebar{background:var(--white);border-right:1px solid var(--gray-200);padding:24px 0}
+.admin-nav-item{padding:10px 24px;font-size:14px;font-weight:500;color:var(--gray-600);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;border-left:3px solid transparent}
+.admin-nav-item:hover{background:var(--gray-50);color:var(--gray-900)}
+.admin-nav-item.active{background:var(--blue-light);color:var(--blue);border-left-color:var(--blue)}
+.admin-content{padding:32px;background:var(--bg)}
+.admin-title{font-family:var(--font-head);font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.admin-sub{font-size:14px;color:var(--gray-500);margin-bottom:32px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.kpi-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:24px}
+.kpi-label{font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.kpi-value{font-family:var(--font-head);font-size:32px;font-weight:800;color:var(--gray-900)}
+.kpi-change{font-size:12px;margin-top:4px}
+.kpi-change.up{color:var(--green)}
+.kpi-change.down{color:var(--red)}
+.admin-section{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);margin-bottom:24px;overflow:hidden}
+.admin-section-header{padding:16px 24px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between}
+.admin-section-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+.admin-section-body{padding:24px}
+.table{width:100%;border-collapse:collapse}
+.table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);padding:0 12px 12px;text-align:left;border-bottom:1px solid var(--gray-200)}
+.table td{padding:14px 12px;font-size:14px;color:var(--gray-700);border-bottom:1px solid var(--gray-100)}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--gray-50)}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.status-badge.active{background:rgba(16,185,129,.1);color:var(--green)}
+.status-badge.inactive{background:var(--gray-100);color:var(--gray-500)}
+.toggle-switch{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--gray-300);border-radius:11px;transition:background .2s}
+.toggle-switch input:checked~.toggle-track{background:var(--blue)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:left .2s;box-shadow:var(--shadow-sm)}
+.toggle-switch input:checked~.toggle-track~.toggle-thumb{left:21px}
+.chart-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.chart-bar-label{font-size:13px;color:var(--gray-600);width:100px;text-align:right;flex-shrink:0}
+.chart-bar-track{flex:1;height:10px;background:var(--gray-100);border-radius:100px;overflow:hidden}
+.chart-bar-fill{height:100%;background:var(--blue);border-radius:100px;transition:width .8s ease}
+.chart-bar-val{font-size:12px;font-weight:600;color:var(--gray-700);width:40px}
+.server-meter{margin-bottom:20px}
+.server-meter-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.server-meter-label span:first-child{color:var(--gray-700);font-weight:500}
+.server-meter-label span:last-child{color:var(--gray-500)}
+.meter-track{height:8px;background:var(--gray-100);border-radius:100px;overflow:hidden}
+.meter-fill{height:100%;border-radius:100px}
+.meter-fill.low{background:var(--green)}
+.meter-fill.mid{background:var(--orange)}
+.meter-fill.high{background:var(--red)}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--white);border-radius:var(--radius-lg);padding:40px;max-width:480px;width:100%;position:relative;animation:modalIn .3s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border:none;background:var(--gray-100);border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--gray-500);transition:all .2s}
+.modal-close:hover{background:var(--gray-200)}
+.modal-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--blue),#60a5fa);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px}
+.modal h2{font-family:var(--font-head);font-size:24px;font-weight:800;text-align:center;margin-bottom:8px;letter-spacing:-.5px}
+.modal p{font-size:14px;color:var(--gray-500);text-align:center;margin-bottom:28px;line-height:1.6}
+.modal-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.modal-feature{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gray-700)}
+.modal-feature .mf-icon{width:28px;height:28px;background:var(--blue-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.modal-price-row{display:flex;align-items:baseline;justify-content:center;gap:6px;margin-bottom:24px}
+.modal-price{font-family:var(--font-head);font-size:40px;font-weight:800;color:var(--gray-900)}
+.modal-price sub{font-size:16px;font-weight:400;color:var(--gray-500)}
+.modal-upgrade-btn{width:100%;padding:14px;background:var(--blue);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.modal-upgrade-btn:hover{background:var(--blue-dark);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.modal-cancel{width:100%;padding:12px;background:none;border:none;color:var(--gray-400);font-size:14px;cursor:pointer}
+.modal-cancel:hover{color:var(--gray-600)}
+
+/* Limit reached modal */
+.limit-modal .modal-icon{background:linear-gradient(135deg,var(--orange),#fbbf24)}
+
+/* ─── ADMIN LOGIN ─── */
+.admin-login-wrap{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.admin-login-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);animation:fadeIn .3s ease}
+.admin-login-logo{width:56px;height:56px;background:var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 20px}
+.admin-login-card h2{font-family:var(--font-head);font-size:24px;font-weight:800;text-align:center;letter-spacing:-.5px;margin-bottom:6px}
+.admin-login-card .login-sub{font-size:14px;color:var(--gray-400);text-align:center;margin-bottom:32px}
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:6px}
+.login-field input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color .2s;background:var(--white);color:var(--gray-900)}
+.login-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.login-field input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.login-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:18px;display:none;align-items:center;gap:8px}
+.login-error.show{display:flex}
+.login-btn{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:var(--font-body);margin-top:4px}
+.login-btn:hover{background:var(--blue-dark);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.login-btn:active{transform:none}
+.login-btn:disabled{background:var(--gray-300);cursor:not-allowed;transform:none;box-shadow:none}
+.login-hint{text-align:center;margin-top:20px;font-size:12px;color:var(--gray-400)}
+.login-hint span{display:inline-flex;align-items:center;gap:6px;background:var(--gray-100);padding:5px 12px;border-radius:100px}
+.admin-topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 32px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.admin-topbar-left{display:flex;align-items:center;gap:10px}
+.admin-topbar-left span{font-size:13px;color:var(--gray-500)}
+.admin-topbar-left strong{font-size:13px;font-weight:700;color:var(--gray-900)}
+.admin-avatar{width:28px;height:28px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700}
+.admin-logout-btn{padding:6px 14px;border:1px solid var(--gray-200);background:none;border-radius:8px;font-size:13px;font-weight:500;color:var(--gray-600);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.admin-logout-btn:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.04)}
+.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* ─── FOOTER ─── */
+footer{background:var(--gray-900);color:var(--gray-400);padding:48px 24px 32px}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand .logo{font-family:var(--font-head);font-size:20px;font-weight:800;color:white;margin-bottom:12px}
+.footer-brand p{font-size:14px;line-height:1.7;color:var(--gray-500)}
+.footer-col h4{font-size:13px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-col li{font-size:14px;cursor:pointer;transition:color .2s}
+.footer-col li:hover{color:var(--gray-200)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.footer-bottom .privacy{display:flex;gap:20px}
+.footer-bottom .privacy span{cursor:pointer;transition:color .2s}
+.footer-bottom .privacy span:hover{color:var(--gray-200)}
+
+/* ─── PRIVACY PAGE ─── */
+.privacy-page{max-width:720px;margin:0 auto;padding:64px 24px}
+.privacy-page h1{font-family:var(--font-head);font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.privacy-page .updated{font-size:13px;color:var(--gray-400);margin-bottom:40px}
+.privacy-page h2{font-family:var(--font-head);font-size:20px;font-weight:700;margin:32px 0 12px}
+.privacy-page p,.privacy-page li{font-size:15px;color:var(--gray-600);line-height:1.8;margin-bottom:12px}
+.privacy-page ul{padding-left:20px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .steps-grid{grid-template-columns:1fr 1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+  .admin-layout{grid-template-columns:1fr}
+  .admin-sidebar{display:flex;overflow-x:auto;padding:0;border-right:none;border-bottom:1px solid var(--gray-200)}
+  .admin-nav-item{flex-shrink:0;border-left:none;border-bottom:3px solid transparent;padding:14px 20px}
+  .admin-nav-item.active{border-bottom-color:var(--blue);border-left:none}
+}
+@media(max-width:640px){
+  .nav-links{display:none}.hamburger{display:flex}
+  .steps-grid{grid-template-columns:1fr}
+  .pricing-grid{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;gap:12px;text-align:center}
+  .stats-inner{grid-template-columns:1fr 1fr}
+  .flow-visual{gap:8px}
+  .hero{padding:56px 24px 48px}
+}
+</style>
+</head>
+<body>
+
+<!-- LIMIT BAR -->
+<div class="limit-bar" id="limitBar">
+  ⚡ You've used <span id="limitCount">4</span>/5 free conversions today.
+  <a onclick="showUpgradeModal()">Upgrade to Premium</a> for unlimited access.
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" onclick="showView('landing')">
+      <div class="logo-icon">⚡</div>
+      Convertly
+    </a>
+    <div class="nav-links">
+      <button class="nav-link" onclick="showView('tools')">All Tools</button>
+      <button class="nav-link" onclick="showView('pricing')">Pricing</button>
+      <button class="nav-link" onclick="showView('admin')">Admin</button>
+    </div>
+    <div class="nav-usage" id="navUsage">
+      <div class="dot" id="usageDot"></div>
+      <span id="usageText">5 free conversions left</span>
+    </div>
+    <button class="nav-cta" onclick="showUpgradeModal()">⭐ Go Premium</button>
+    <div class="hamburger" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════ LANDING VIEW ═══════════ -->
+<div class="view active" id="view-landing">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">🚀 Fast · Secure · Free to Start</div>
+    <h1>Convert Files<br><span>Instantly</span></h1>
+    <p>Easily convert images, PDFs, and documents into multiple formats in seconds. No software needed.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showView('tools')">⚡ Upload File</button>
+      <button class="btn-secondary" onclick="showView('tools')">View All Tools →</button>
+    </div>
+    <div class="flow-visual">
+      <div class="flow-box"><span class="ficon">📄</span>Upload File</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight"><span class="ficon">⚙️</span>Convert</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><span class="ficon">✅</span>Download</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat-item"><div class="num">2.4M+</div><div class="lbl">Files Converted</div></div>
+      <div class="stat-item"><div class="num">16</div><div class="lbl">Conversion Tools</div></div>
+      <div class="stat-item"><div class="num">&lt;3s</div><div class="lbl">Avg Convert Time</div></div>
+      <div class="stat-item"><div class="num">256-bit</div><div class="lbl">SSL Encryption</div></div>
+    </div>
+  </div>
+
+  <!-- Tools preview -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Conversion Tools</div>
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-sub">Powerful converters for images, documents, and PDFs — all in one place.</p>
+    </div>
+    <div class="tools-grid" id="homeToolsGrid"></div>
+    <div style="text-align:center;margin-top:32px">
+      <button class="btn-secondary" onclick="showView('tools')">View All 16 Tools →</button>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div style="background:var(--white);padding:72px 0">
+    <div class="section" style="padding-top:0;padding-bottom:0">
+      <div class="section-header">
+        <div class="section-tag">How It Works</div>
+        <h2 class="section-title">Convert in 4 Simple Steps</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Upload Your File</h3>
+          <p>Drag & drop or click to browse. Supports all common file formats up to 10 MB free.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Select Output Format</h3>
+          <p>Choose your desired output format from the available options for your file type.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Click Convert</h3>
+          <p>Our engine processes your file instantly with lightning-fast conversion speed.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h3>Download File</h3>
+          <p>Your converted file is ready. Download it instantly — auto-deleted after 1 hour.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security section -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Privacy & Security</div>
+      <h2 class="section-title">Your Files Stay Private</h2>
+      <p class="section-sub">We take your privacy seriously with enterprise-grade security.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px;margin:0 auto">
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:28px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">🔒</div>
+        <h3 style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-bottom:8px">SSL Encrypted</h3>
+        <p style="font-size:13px;color:var(--gray-500)">256-bit SSL encryption for all file transfers</p>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:28px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">🗑️</div>
+        <h3 style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-bottom:8px">Auto-Deleted</h3>
+        <p style="font-size:13px;color:var(--gray-500)">Files are automatically deleted within 1 hour</p>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:28px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">🛡️</div>
+        <h3 style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-bottom:8px">No Tracking</h3>
+        <p style="font-size:13px;color:var(--gray-500)">We never sell or share your file data</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="background:var(--blue);padding:72px 24px;text-align:center">
+    <h2 style="font-family:var(--font-head);font-size:clamp(28px,4vw,40px);font-weight:800;color:white;letter-spacing:-1px;margin-bottom:12px">Start Converting for Free</h2>
+    <p style="color:rgba(255,255,255,.75);font-size:16px;margin-bottom:32px">No signup required. 5 free conversions per day.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button onclick="showView('tools')" style="padding:14px 28px;background:white;color:var(--blue);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">Get Started Free →</button>
+      <button onclick="showUpgradeModal()" style="padding:14px 28px;background:rgba(255,255,255,.15);color:white;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.3);transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">⭐ Go Premium</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TOOLS VIEW ═══════════ -->
+<div class="view" id="view-tools">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">All Tools</div>
+      <h2 class="section-title">16 Powerful Converters</h2>
+      <p class="section-sub">Choose a tool to get started. Free users get 5 conversions per day.</p>
+    </div>
+    <div class="category-tabs">
+      <button class="cat-tab active" onclick="filterTools('all',this)">All Tools</button>
+      <button class="cat-tab" onclick="filterTools('image',this)">🖼️ Image</button>
+      <button class="cat-tab" onclick="filterTools('document',this)">📄 Document</button>
+      <button class="cat-tab" onclick="filterTools('pdf',this)">📋 PDF Tools</button>
+    </div>
+    <div class="tools-grid" id="allToolsGrid"></div>
+  </div>
+</div>
+
+<!-- ═══════════ CONVERTER VIEW ═══════════ -->
+<div class="view" id="view-converter">
+  <div class="converter-page">
+    <button class="back-btn" onclick="showView('tools')">← Back to All Tools</button>
+    <div class="converter-header">
+      <div class="ch-icon" id="convIcon"></div>
+      <h2 id="convTitle">Convert File</h2>
+      <p id="convDesc">Upload your file to get started</p>
+    </div>
+
+    <div class="upload-zone" id="uploadZone"
+      ondragover="handleDragOver(event)"
+      ondragleave="handleDragLeave(event)"
+      ondrop="handleDrop(event)">
+      <input type="file" id="fileInput" onchange="handleFileSelect(event)"/>
+      <div class="uz-icon">☁️</div>
+      <h3>Drag & drop your file here</h3>
+      <p>or click to browse from your computer</p>
+      <div class="limit-note">🔒 Max 10 MB · Free · No login required</div>
+    </div>
+
+    <div class="file-preview" id="filePreview">
+      <div class="fp-icon" id="fpIcon">📄</div>
+      <div class="fp-info">
+        <div class="fp-name" id="fpName">filename</div>
+        <div class="fp-size" id="fpSize">0 KB</div>
+      </div>
+      <button class="fp-remove" onclick="removeFile()" title="Remove">✕</button>
+    </div>
+
+    <div class="format-section" id="formatSection">
+      <div class="fs-label">Output Format</div>
+      <div class="format-options" id="formatOptions"></div>
+    </div>
+
+    <div class="upload-progress" id="uploadProgress">
+      <div class="progress-label">
+        <span id="progressLabel">Converting...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <button class="convert-btn" id="convertBtn" onclick="doConvert()">
+      ⚡ Convert Now
+    </button>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="result-box" id="resultBox">
+      <div class="rb-icon">✅</div>
+      <div class="rb-text">
+        <div class="rb-title">Conversion Complete!</div>
+        <div class="rb-desc" id="resultDesc">Your file is ready to download.</div>
+      </div>
+      <a class="rb-download" id="downloadBtn" href="#" download>↓ Download</a>
+    </div>
+
+    <div class="text-out" id="textOut">
+      <div class="fs-label" style="margin-bottom:12px">Extracted Content</div>
+      <textarea id="textOutArea" readonly placeholder="Extracted text will appear here..."></textarea>
+      <button onclick="downloadExtractedText()" style="margin-top:12px;padding:10px 20px;background:var(--green);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">↓ Save as .txt</button>
+    </div>
+
+    <!-- Info bar -->
+    <div style="margin-top:40px;padding:20px;background:var(--blue-light);border-radius:var(--radius);border:1px solid var(--blue-mid)">
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--blue)">🔒 <span>SSL Encrypted Transfer</span></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--blue)">🗑️ <span>Files deleted after 1 hour</span></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--blue)">⚡ <span>Client-side processing</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PRICING VIEW ═══════════ -->
+<div class="view" id="view-pricing">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Pricing</div>
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-sub">Start for free, upgrade when you need more power.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-period">Forever free, no credit card</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>5 conversions per day</li>
+          <li><span class="check">✓</span>10 MB max file size</li>
+          <li><span class="check">✓</span>All 16 conversion tools</li>
+          <li><span class="check">✓</span>Standard processing speed</li>
+          <li><span class="cross">✗</span>Priority processing</li>
+          <li><span class="cross">✗</span>200 MB file uploads</li>
+          <li><span class="cross">✗</span>Unlimited conversions</li>
+          <li><span class="cross">✗</span>Ad-free experience</li>
+        </ul>
+        <button class="plan-btn outline" onclick="showView('tools')">Start for Free</button>
+      </div>
+      <div class="plan-card popular">
+        <div class="popular-badge">⭐ MOST POPULAR</div>
+        <div class="plan-name">Premium</div>
+        <div class="plan-price">$9<span>/mo</span></div>
+        <div class="plan-period">Billed monthly · Cancel anytime</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>Unlimited conversions</li>
+          <li><span class="check">✓</span>200 MB max file size</li>
+          <li><span class="check">✓</span>All 16 conversion tools</li>
+          <li><span class="check">✓</span>Priority processing (10× faster)</li>
+          <li><span class="check">✓</span>Ad-free experience</li>
+          <li><span class="check">✓</span>Batch file conversion</li>
+          <li><span class="check">✓</span>API access</li>
+          <li><span class="check">✓</span>Email support</li>
+        </ul>
+        <button class="plan-btn filled" onclick="showUpgradeModal()">Upgrade to Premium →</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:32px;font-size:14px;color:var(--gray-400)">
+      💳 Secure payment · 🔒 Cancel anytime · ✉️ 24/7 support
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN VIEW ═══════════ -->
+<div class="view" id="view-admin">
+
+  <!-- LOGIN SCREEN -->
+  <div id="adminLoginScreen" class="admin-login-wrap">
+    <div class="admin-login-card">
+      <div class="admin-login-logo">🛡️</div>
+      <h2>Admin Login</h2>
+      <p class="login-sub">Sign in to access the Convertly dashboard</p>
+
+      <div class="login-error" id="loginError">
+        <span>⚠</span> <span id="loginErrorMsg">Invalid username or password.</span>
+      </div>
+
+      <div class="login-field">
+        <label for="adminUsername">Username</label>
+        <input type="text" id="adminUsername" placeholder="Enter username" autocomplete="username"
+          onkeydown="if(event.key==='Enter') doAdminLogin()"/>
+      </div>
+      <div class="login-field">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') doAdminLogin()"/>
+      </div>
+
+      <button class="login-btn" id="loginBtn" onclick="doAdminLogin()">
+        Sign In to Dashboard →
+      </button>
+
+      <div class="login-hint">
+        <span>🔒 Restricted access — authorized personnel only</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD (shown after login) -->
+  <div id="adminDashboard" style="display:none">
+    <!-- Top bar -->
+    <div class="admin-topbar">
+      <div class="admin-topbar-left">
+        <div class="admin-avatar">A</div>
+        <strong>ajay</strong>
+        <span>· Administrator</span>
+      </div>
+      <button class="admin-logout-btn" onclick="doAdminLogout()">
+        ⎋ Log Out
+      </button>
+    </div>
+
+    <div class="admin-layout">
+      <div class="admin-sidebar">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid var(--gray-200);margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400)">Admin Panel</div>
+        </div>
+        <div class="admin-nav-item active" onclick="switchAdmin('overview',this)">📊 Overview</div>
+        <div class="admin-nav-item" onclick="switchAdmin('conversions',this)">⚙️ Conversions</div>
+        <div class="admin-nav-item" onclick="switchAdmin('tools',this)">🔧 Manage Tools</div>
+        <div class="admin-nav-item" onclick="switchAdmin('ads',this)">📢 Advertisements</div>
+        <div class="admin-nav-item" onclick="switchAdmin('server',this)">🖥️ Server Usage</div>
+      </div>
+      <div class="admin-content" id="adminContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ PRIVACY VIEW ═══════════ -->
+<div class="view" id="view-privacy">
+  <div class="privacy-page">
+    <h1>Privacy Policy</h1>
+    <div class="updated">Last updated: January 1, 2025</div>
+    <h2>1. Information We Collect</h2>
+    <p>Convertly collects minimal data to operate the service. We use browser cookies and local storage to track your daily free conversion usage limit (5 per day). We do not collect personally identifiable information unless you upgrade to Premium.</p>
+    <h2>2. File Handling</h2>
+    <p>All file conversions are processed client-side in your browser. Your files are never uploaded to our servers. Files processed locally are automatically cleared from memory when you close the tab.</p>
+    <ul>
+      <li>Files are processed entirely in your browser</li>
+      <li>No file data is transmitted to external servers</li>
+      <li>No file content is stored, logged, or analyzed</li>
+    </ul>
+    <h2>3. Cookies & Local Storage</h2>
+    <p>We use cookies and localStorage solely to track your free usage count. This data is stored on your device and expires daily. You can clear this data at any time by clearing your browser's cookies and local storage.</p>
+    <h2>4. Third-Party Services</h2>
+    <p>We use Google Fonts for typography (privacy policy at fonts.google.com). No analytics, advertising trackers, or third-party monitoring tools are embedded in the free version.</p>
+    <h2>5. Security</h2>
+    <p>Our website is served over HTTPS with SSL/TLS encryption. Since all file processing happens in your browser, your files never traverse the internet to our servers.</p>
+    <h2>6. Contact</h2>
+    <p>For privacy inquiries, email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e6e4ffe0f7f5efd6f5f9f8e0f3e4e2faefb8f7e6e6">[email&#160;protected]</a></p>
+  </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">⚡ Convertly</div>
+        <p>The fastest, most secure file converter online. Convert images, documents, and PDFs in seconds — no software required.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <ul>
+          <li onclick="openTool('jpg-pdf')">JPG to PDF</li>
+          <li onclick="openTool('png-pdf')">PNG to PDF</li>
+          <li onclick="openTool('pdf-txt')">PDF to Text</li>
+          <li onclick="openTool('pdf-img')">PDF to Image</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li onclick="showView('tools')">All Tools</li>
+          <li onclick="showView('pricing')">Pricing</li>
+          <li onclick="showUpgradeModal()">Go Premium</li>
+          <li onclick="showView('admin')">Admin</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li onclick="showView('privacy')">Privacy Policy</li>
+          <li>Terms of Service</li>
+          <li>Cookie Policy</li>
+          <li>GDPR</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2025 Convertly. All rights reserved.</div>
+      <div class="privacy">
+        <span onclick="showView('privacy')">Privacy Policy</span>
+        <span>Terms</span>
+        <span>Cookies</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── UPGRADE MODAL ─── -->
+<div class="modal-overlay" id="upgradeModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+    <div class="modal-icon">⭐</div>
+    <h2>Upgrade to Premium</h2>
+    <p>Unlock unlimited conversions, larger files, and priority speed.</p>
+    <div class="modal-features">
+      <div class="modal-feature"><div class="mf-icon">♾️</div>Unlimited conversions per day</div>
+      <div class="modal-feature"><div class="mf-icon">📦</div>200 MB max file size (vs 10 MB)</div>
+      <div class="modal-feature"><div class="mf-icon">⚡</div>Priority processing — 10× faster</div>
+      <div class="modal-feature"><div class="mf-icon">🚫</div>Completely ad-free experience</div>
+      <div class="modal-feature"><div class="mf-icon">🔄</div>Batch file conversion</div>
+    </div>
+    <div class="modal-price-row">
+      <div class="modal-price">$9<sub>/month</sub></div>
+    </div>
+    <button class="modal-upgrade-btn" onclick="activatePremium()">Start Premium — $9/mo →</button>
+    <button class="modal-cancel" onclick="closeUpgradeModal()">Maybe later</button>
+  </div>
+</div>
+
+<!-- ─── LIMIT MODAL ─── -->
+<div class="modal-overlay" id="limitModal">
+  <div class="modal limit-modal">
+    <button class="modal-close" onclick="closeLimitModal()">✕</button>
+    <div class="modal-icon">⏱️</div>
+    <h2>Daily Limit Reached</h2>
+    <p>You've used all 5 free conversions for today. Upgrade to Premium for unlimited access.</p>
+    <div class="modal-features">
+      <div class="modal-feature"><div class="mf-icon">♾️</div>Unlimited daily conversions</div>
+      <div class="modal-feature"><div class="mf-icon">📦</div>Files up to 200 MB</div>
+      <div class="modal-feature"><div class="mf-icon">⚡</div>Priority processing speed</div>
+    </div>
+    <div class="modal-price-row">
+      <div class="modal-price">$9<sub>/month</sub></div>
+    </div>
+    <button class="modal-upgrade-btn" onclick="activatePremium()">Upgrade Now →</button>
+    <button class="modal-cancel" onclick="closeLimitModal()">Not now — wait until tomorrow</button>
+  </div>
+</div>
+
+<!-- ─── PREMIUM ACTIVATED MODAL ─── -->
+<div class="modal-overlay" id="premiumModal">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('premiumModal').classList.remove('show')">✕</button>
+    <div class="modal-icon" style="background:linear-gradient(135deg,var(--green),#34d399)">🎉</div>
+    <h2>Welcome to Premium!</h2>
+    <p>You now have unlimited conversions, 200 MB uploads, and priority processing. Enjoy!</p>
+    <button class="modal-upgrade-btn" style="background:var(--green)" onclick="document.getElementById('premiumModal').classList.remove('show');showView('tools')">Start Converting →</button>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ═══ TOOLS DATA ═══
+const TOOLS = [
+  // Image
+  {id:'jpg-pdf',cat:'image',icon:'🖼️',iconBg:'#EFF6FF',title:'JPG to PDF',desc:'Convert JPEG images into PDF documents',accept:'image/jpeg,image/jpg',outputs:['PDF']},
+  {id:'png-pdf',cat:'image',icon:'🗺️',iconBg:'#F0FDF4',title:'PNG to PDF',desc:'Convert PNG images into PDF documents',accept:'image/png',outputs:['PDF']},
+  {id:'img-webp',cat:'image',icon:'🔄',iconBg:'#FFF7ED',title:'Image to WebP',desc:'Convert JPG/PNG to modern WebP format',accept:'image/*',outputs:['WebP']},
+  {id:'jpg-png',cat:'image',icon:'🎨',iconBg:'#FDF4FF',title:'JPG to PNG',desc:'Convert JPEG to lossless PNG format',accept:'image/jpeg,image/jpg',outputs:['PNG']},
+  // Document
+  {id:'pdf-txt',cat:'document',icon:'📝',iconBg:'#FFFBEB',title:'PDF to Text',desc:'Extract all text content from a PDF file',accept:'.pdf,application/pdf',outputs:['TXT']},
+  {id:'txt-pdf',cat:'document',icon:'📄',iconBg:'#EFF6FF',title:'TXT to PDF',desc:'Convert plain text files into PDF documents',accept:'.txt,text/plain',outputs:['PDF']},
+  {id:'img-pdf',cat:'document',icon:'🖼️',iconBg:'#F0FDF4',title:'Image to PDF',desc:'Convert any image format into a PDF',accept:'image/*',outputs:['PDF']},
+  {id:'png-jpg',cat:'document',icon:'🔁',iconBg:'#FFF1F2',title:'PNG to JPG',desc:'Convert PNG to compressed JPEG format',accept:'image/png',outputs:['JPG']},
+  // PDF Tools
+  {id:'pdf-img',cat:'pdf',icon:'📋',iconBg:'#EFF6FF',title:'PDF to Images',desc:'Extract each PDF page as a PNG image',accept:'.pdf,application/pdf',outputs:['PNG']},
+  {id:'compress-img',cat:'pdf',icon:'🗜️',iconBg:'#FFFBEB',title:'Compress Image',desc:'Reduce image file size without quality loss',accept:'image/*',outputs:['JPG','WebP']},
+  {id:'webp-png',cat:'pdf',icon:'🖼️',iconBg:'#F0FDF4',title:'WebP to PNG',desc:'Convert WebP images to universal PNG',accept:'image/webp',outputs:['PNG']},
+  {id:'webp-jpg',cat:'pdf',icon:'🖼️',iconBg:'#FDF4FF',title:'WebP to JPG',desc:'Convert WebP images to JPEG format',accept:'image/webp',outputs:['JPG']},
+  {id:'img-jpg',cat:'image',icon:'📸',iconBg:'#FFF1F2',title:'Any Image to JPG',desc:'Convert any image format to JPEG',accept:'image/*',outputs:['JPG']},
+  {id:'pdf-merge',cat:'pdf',icon:'📎',iconBg:'#EFF6FF',title:'Merge Images to PDF',desc:'Combine multiple images into one PDF',accept:'image/*',outputs:['PDF']},
+  {id:'rotate-img',cat:'pdf',icon:'🔃',iconBg:'#F0FDF4',title:'Rotate Image',desc:'Rotate images 90°, 180°, or 270°',accept:'image/*',outputs:['PNG','JPG']},
+  {id:'grayscale',cat:'pdf',icon:'⬛',iconBg:'#F9FAFB',title:'Grayscale Image',desc:'Convert colorful images to black & white',accept:'image/*',outputs:['PNG','JPG']},
+];
+
+// ═══ FREEMIUM ═══
+const FREE_LIMIT = 5;
+const FREE_MAX_MB = 10;
+
+function getUsageKey(){
+  const today = new Date().toDateString();
+  return 'conv_usage_'+today;
+}
+
+function getUsage(){
+  const data = JSON.parse(localStorage.getItem(getUsageKey())||'{"count":0}');
+  return data.count;
+}
+
+function incrementUsage(){
+  const key = getUsageKey();
+  const data = JSON.parse(localStorage.getItem(key)||'{"count":0}');
+  data.count++;
+  localStorage.setItem(key, JSON.stringify(data));
+  updateUsageUI();
+}
+
+function isPremium(){
+  return localStorage.getItem('conv_premium')==='true';
+}
+
+function canConvert(){
+  if(isPremium()) return true;
+  return getUsage() < FREE_LIMIT;
+}
+
+function getMaxMB(){
+  return isPremium() ? 200 : FREE_MAX_MB;
+}
+
+function updateUsageUI(){
+  const used = getUsage();
+  const remaining = Math.max(0, FREE_LIMIT - used);
+  const usageText = document.getElementById('usageText');
+  const usageDot = document.getElementById('usageDot');
+  const limitBar = document.getElementById('limitBar');
+  const limitCount = document.getElementById('limitCount');
+  if(!usageText || !usageDot) return;
+
+  if(isPremium()){
+    usageText.textContent = '⭐ Premium — Unlimited';
+    usageDot.className = 'dot';
+    usageDot.style.background = 'var(--blue)';
+    if(limitBar) limitBar.classList.remove('show');
+    return;
+  }
+
+  usageText.textContent = remaining + ' conversions left today';
+  if(limitCount) limitCount.textContent = used;
+
+  if(remaining === 0){
+    usageDot.className = 'dot danger';
+    if(limitBar) limitBar.classList.add('show');
+  } else if(remaining <= 2){
+    usageDot.className = 'dot warn';
+    if(used >= 3 && limitBar) limitBar.classList.add('show');
+  } else {
+    usageDot.className = 'dot';
+  }
+}
+
+function activatePremium(){
+  localStorage.setItem('conv_premium','true');
+  closeUpgradeModal();
+  closeLimitModal();
+  updateUsageUI();
+  const _pm = document.getElementById('premiumModal'); if(_pm) _pm.classList.add('show');
+  // Update nav usage
+  const navUsage = document.getElementById('navUsage');
+  if(navUsage) navUsage.innerHTML = '<div class="dot" style="background:var(--blue)"></div><span>⭐ Premium</span>';
+}
+
+// ═══ ADMIN AUTH ═══
+const ADMIN_USER = 'ajay';
+const ADMIN_PASS = '9253192053';
+
+function isAdminLoggedIn(){
+  return sessionStorage.getItem('admin_auth') === 'true';
+}
+
+function doAdminLogin(){
+  const username = document.getElementById('adminUsername').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  const btn = document.getElementById('loginBtn');
+  const errorEl = document.getElementById('loginError');
+  const card = document.querySelector('.admin-login-card');
+
+  // Clear previous errors
+  errorEl.classList.remove('show');
+  document.getElementById('adminUsername').classList.remove('error');
+  document.getElementById('adminPassword').classList.remove('error');
+
+  if(!username || !password){
+    document.getElementById('loginErrorMsg').textContent = 'Please enter both username and password.';
+    errorEl.classList.add('show');
+    if(!username) document.getElementById('adminUsername').classList.add('error');
+    if(!password) document.getElementById('adminPassword').classList.add('error');
+    return;
+  }
+
+  // Simulate brief loading
+  btn.disabled = true;
+  btn.textContent = '🔐 Verifying...';
+
+  setTimeout(() => {
+    if(username === ADMIN_USER && password === ADMIN_PASS){
+      // ✅ Correct credentials
+      sessionStorage.setItem('admin_auth', 'true');
+      document.getElementById('adminLoginScreen').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      renderAdminOverview();
+      // Reset first nav item to active
+      document.querySelectorAll('.admin-nav-item').forEach((el,i)=>{
+        el.classList.toggle('active', i===0);
+      });
+    } else {
+      // ❌ Wrong credentials
+      document.getElementById('loginErrorMsg').textContent = 'Invalid username or password. Please try again.';
+      errorEl.classList.add('show');
+      document.getElementById('adminUsername').classList.add('error');
+      document.getElementById('adminPassword').classList.add('error');
+      document.getElementById('adminPassword').value = '';
+      // Shake animation
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow to restart animation
+      card.classList.add('shake');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Sign In to Dashboard →';
+  }, 600);
+}
+
+function doAdminLogout(){
+  // Reset login form
+  document.getElementById('adminUsername').value = '';
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('adminUsername').classList.remove('error');
+  document.getElementById('adminPassword').classList.remove('error');
+  // Show login, hide dashboard
+  document.getElementById('adminLoginScreen').style.display = 'flex';
+  document.getElementById('adminDashboard').style.display = 'none';
+}
+
+// ═══ VIEWS ═══
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  const map = {tools:'tools',pricing:'pricing',admin:'admin'};
+  if(map[name]){
+    document.querySelectorAll('.nav-link').forEach(l=>{
+      if(l.textContent.toLowerCase().includes(map[name])) l.classList.add('active');
+    });
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='admin'){
+    const loggedIn = sessionStorage.getItem('admin_auth') === 'true';
+    if(loggedIn){
+      document.getElementById('adminLoginScreen').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      renderAdminOverview();
+    } else {
+      document.getElementById('adminLoginScreen').style.display = 'flex';
+      document.getElementById('adminDashboard').style.display = 'none';
+      setTimeout(()=>{ 
+        const u = document.getElementById('adminUsername');
+        if(u) u.focus();
+      }, 300);
+    }
+  }
+}
+
+// ═══ TOOL GRIDS ═══
+function renderToolGrid(container, tools){
+  container.innerHTML = tools.map(t=>`
+    <div class="tool-card" onclick="openTool('${t.id}')">
+      <div class="tc-icon" style="background:${t.iconBg}">${t.icon}</div>
+      <div class="tc-title">${t.title}</div>
+      <div class="tc-desc">${t.desc}</div>
+      <div class="tc-arrow">→</div>
+      <div class="badge-free">FREE</div>
+    </div>
+  `).join('');
+}
+
+function filterTools(cat, el){
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = cat==='all' ? TOOLS : TOOLS.filter(t=>t.cat===cat);
+  renderToolGrid(document.getElementById('allToolsGrid'), filtered);
+}
+
+// ═══ CURRENT TOOL STATE ═══
+let currentTool = null;
+let currentFile = null;
+let selectedOutput = null;
+let extractedTextData = '';
+
+function openTool(id){
+  currentTool = TOOLS.find(t=>t.id===id);
+  if(!currentTool) return;
+
+  // Reset state
+  currentFile = null; selectedOutput = null; extractedTextData='';
+
+  document.getElementById('convIcon').style.background = currentTool.iconBg;
+  document.getElementById('convIcon').textContent = currentTool.icon;
+  document.getElementById('convTitle').textContent = currentTool.title;
+  document.getElementById('convDesc').textContent = currentTool.desc;
+  document.getElementById('fileInput').accept = currentTool.accept;
+
+  // Reset UI
+  ['filePreview','formatSection','uploadProgress','resultBox','textOut'].forEach(id=>{
+    document.getElementById(id).classList.remove('show');
+  });
+  document.getElementById('convertBtn').classList.remove('show');
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('fileInput').value='';
+
+  if(currentTool.outputs && currentTool.outputs.length > 1){
+    const opts = document.getElementById('formatOptions');
+    opts.innerHTML = currentTool.outputs.map(o=>
+      `<button class="fmt-opt" onclick="selectOutput('${o}',this)">${o}</button>`
+    ).join('');
+  } else {
+    selectedOutput = currentTool.outputs[0];
+  }
+
+  showView('converter');
+}
+
+function selectOutput(fmt, el){
+  document.querySelectorAll('.fmt-opt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+  selectedOutput = fmt;
+  if(currentFile) document.getElementById('convertBtn').classList.add('show');
+}
+
+// ═══ FILE HANDLING ═══
+function handleDragOver(e){e.preventDefault();document.getElementById('uploadZone').classList.add('drag-over')}
+function handleDragLeave(){document.getElementById('uploadZone').classList.remove('drag-over')}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if(file) processFile(file);
+}
+function handleFileSelect(e){if(e.target.files[0]) processFile(e.target.files[0])}
+
+function processFile(file){
+  const maxMB = getMaxMB();
+  if(file.size > maxMB * 1024 * 1024){
+    if(!isPremium()){
+      showError(`File too large. Free limit is ${FREE_MAX_MB} MB. Upgrade to Premium for 200 MB uploads.`);
+      setTimeout(()=>showUpgradeModal(),800);
+    } else {
+      showError(`File too large. Maximum size is ${maxMB} MB.`);
+    }
+    return;
+  }
+
+  currentFile = file;
+  document.getElementById('fpName').textContent = file.name;
+  document.getElementById('fpSize').textContent = formatBytes(file.size);
+
+  const fpIcon = document.getElementById('fpIcon');
+  if(file.type.startsWith('image/')){
+    const r = new FileReader();
+    r.onload = e => { fpIcon.innerHTML=`<img src="${e.target.result}" alt="preview"/>`; };
+    r.readAsDataURL(file);
+  } else {
+    fpIcon.textContent = file.name.endsWith('.pdf') ? '📋' : '📄';
+  }
+
+  document.getElementById('filePreview').classList.add('show');
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('textOut').classList.remove('show');
+
+  if(currentTool.outputs.length === 1){
+    document.getElementById('convertBtn').classList.add('show');
+  } else {
+    document.getElementById('formatSection').classList.add('show');
+    if(selectedOutput) document.getElementById('convertBtn').classList.add('show');
+  }
+}
+
+function removeFile(){
+  currentFile = null;
+  document.getElementById('filePreview').classList.remove('show');
+  document.getElementById('convertBtn').classList.remove('show');
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('textOut').classList.remove('show');
+  document.getElementById('fileInput').value='';
+}
+
+// ═══ CONVERSION ═══
+async function doConvert(){
+  if(!currentFile || !currentTool) return;
+
+  if(!canConvert()){
+    showLimitModal();
+    return;
+  }
+
+  const btn = document.getElementById('convertBtn');
+  btn.disabled=true; btn.textContent='⏳ Converting...';
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('textOut').classList.remove('show');
+  showProgress('Processing...', 10);
+
+  try {
+    const id = currentTool.id;
+    if(['jpg-pdf','png-pdf','img-pdf','img-webp','jpg-png','png-jpg','img-jpg','webp-png','webp-jpg','grayscale','compress-img','rotate-img','pdf-merge'].includes(id)){
+      await convertImage(id);
+    } else if(id==='pdf-txt'){
+      await convertPdfToText();
+    } else if(id==='txt-pdf'){
+      await convertTxtToPdf();
+    } else if(id==='pdf-img'){
+      await convertPdfToImages();
+    }
+    incrementUsage();
+    updateAdminStats();
+  } catch(err){
+    showError(err.message || 'Conversion failed. Please try again.');
+    console.error(err);
+  }
+
+  btn.disabled=false; btn.textContent='⚡ Convert Now';
+  hideProgress();
+}
+
+async function convertImage(id){
+  showProgress('Loading image...', 20);
+  const dataUrl = await readDataURL(currentFile);
+  const img = await loadImg(dataUrl);
+  showProgress('Processing...', 50);
+
+  const canvas = document.createElement('canvas');
+  let angle = 0;
+
+  if(id==='rotate-img') angle = 90; // default rotate 90
+
+  if(angle===90||angle===270){
+    canvas.width=img.naturalHeight; canvas.height=img.naturalWidth;
+  } else {
+    canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // Special effects
+  if(id==='grayscale'){
+    ctx.drawImage(img,0,0);
+    const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    for(let i=0;i<imgData.data.length;i+=4){
+      const g=imgData.data[i]*.299+imgData.data[i+1]*.587+imgData.data[i+2]*.114;
+      imgData.data[i]=imgData.data[i+1]=imgData.data[i+2]=g;
+    }
+    ctx.putImageData(imgData,0,0);
+  } else if(id==='rotate-img'){
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.rotate(Math.PI/2);
+    ctx.drawImage(img,-img.naturalWidth/2,-img.naturalHeight/2);
+  } else {
+    if((id==='jpg-png'||id==='img-jpg'||id==='png-jpg'||id==='webp-jpg')&&selectedOutput==='JPG'){
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+    ctx.drawImage(img,0,0);
+  }
+
+  showProgress('Generating output...', 75);
+
+  // PDF output
+  if(selectedOutput==='PDF'||id==='jpg-pdf'||id==='png-pdf'||id==='img-pdf'){
+    const {jsPDF} = window.jspdf;
+    const quality = currentFile.type==='image/png'?'PNG':'JPEG';
+    const A4W=210,A4H=297,M=10;
+    const mw=A4W-M*2, mh=A4H-M*2;
+    let dw=mw, dh=(img.naturalHeight/img.naturalWidth)*dw;
+    if(dh>mh){dh=mh;dw=(img.naturalWidth/img.naturalHeight)*dh;}
+    const orient=dw>dh?'l':'p';
+    const pdf=new jsPDF({orientation:orient,unit:'mm',format:'a4'});
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    pdf.addImage(dataUrl,quality,(pw-dw)/2,(ph-dh)/2,dw,dh);
+    showProgress('Finalizing PDF...', 90);
+    const blob=pdf.output('blob');
+    setupDownload(URL.createObjectURL(blob), changExt(currentFile.name,'pdf'), `PDF created · ${formatBytes(blob.size)}`);
+    return;
+  }
+
+  // Image output
+  const mimeMap={PNG:'image/png',JPG:'image/jpeg',WebP:'image/webp'};
+  const extMap={PNG:'png',JPG:'jpg',WebP:'webp'};
+  const out = selectedOutput || (id==='img-webp'?'WebP':id==='jpg-png'?'PNG':id==='compress-img'?'WebP':'JPG');
+  const q = id==='compress-img'?0.7:0.92;
+  const blob = await canvasToBlob(canvas, mimeMap[out]||'image/jpeg', q);
+  showProgress('Done!', 95);
+  setupDownload(URL.createObjectURL(blob), changExt(currentFile.name, extMap[out]||'jpg'), `${out} · ${formatBytes(blob.size)}`);
+}
+
+async function convertPdfToText(){
+  showProgress('Loading PDF...', 15);
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await readArrayBuffer(currentFile);
+  const pdf = await pdfjsLib.getDocument({data:ab}).promise;
+  let text = '';
+  for(let i=1;i<=pdf.numPages;i++){
+    showProgress(`Extracting page ${i}/${pdf.numPages}...`, 20+Math.round((i/pdf.numPages)*70));
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    text += `--- Page ${i} ---\n${tc.items.map(s=>s.str).join(' ')}\n\n`;
+  }
+  extractedTextData = text.trim();
+  document.getElementById('textOutArea').value = extractedTextData || '(No selectable text found — may be a scanned image PDF)';
+  document.getElementById('textOut').classList.add('show');
+  showResult(`${pdf.numPages} page${pdf.numPages>1?'s':''} processed · ${extractedTextData.split(/\s+/).length.toLocaleString()} words extracted`, null);
+}
+
+async function convertTxtToPdf(){
+  showProgress('Reading text...', 30);
+  const text = await currentFile.text();
+  showProgress('Building PDF...', 60);
+  const {jsPDF} = window.jspdf;
+  const pdf = new jsPDF({unit:'mm',format:'a4'});
+  const lines = pdf.splitTextToSize(text, 180);
+  let y = 20;
+  pdf.setFontSize(11);
+  for(const line of lines){
+    if(y > 277){pdf.addPage(); y=20;}
+    pdf.text(line, 15, y);
+    y += 6;
+  }
+  showProgress('Finalizing...', 85);
+  const blob = pdf.output('blob');
+  setupDownload(URL.createObjectURL(blob), changExt(currentFile.name,'pdf'), `PDF created · ${formatBytes(blob.size)}`);
+}
+
+async function convertPdfToImages(){
+  showProgress('Loading PDF...', 10);
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await readArrayBuffer(currentFile);
+  const pdf = await pdfjsLib.getDocument({data:ab}).promise;
+  const total = pdf.numPages;
+  const blobs = [];
+
+  for(let i=1;i<=total;i++){
+    showProgress(`Rendering page ${i}/${total}...`, 10+Math.round((i/total)*80));
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({scale:2});
+    const canvas = document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    const blob = await canvasToBlob(canvas,'image/png');
+    blobs.push({blob, name:`${currentFile.name.replace('.pdf','')}_page${i}.png`});
+  }
+
+  showProgress('Preparing downloads...', 95);
+
+  if(blobs.length===1){
+    setupDownload(URL.createObjectURL(blobs[0].blob), blobs[0].name, `Page 1 of ${total} · PNG image`);
+  } else {
+    showResult(`${total} pages extracted — downloading all...`, null);
+    document.getElementById('downloadBtn').style.display='none';
+    for(const {blob,name} of blobs){
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+      await new Promise(r=>setTimeout(r,400));
+    }
+    document.getElementById('resultBox').querySelector('.rb-desc').textContent=`${total} PNG images downloaded`;
+  }
+}
+
+function downloadExtractedText(){
+  if(!extractedTextData) return;
+  const blob = new Blob([extractedTextData],{type:'text/plain'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download = changExt(currentFile.name,'txt'); a.click();
+}
+
+// ═══ UI HELPERS ═══
+function showProgress(label, pct){
+  document.getElementById('uploadProgress').classList.add('show');
+  document.getElementById('progressLabel').textContent = label;
+  document.getElementById('progressPct').textContent = pct+'%';
+  document.getElementById('progressBar').style.width = pct+'%';
+}
+function hideProgress(){ document.getElementById('uploadProgress').classList.remove('show'); }
+
+function setupDownload(url, name, desc){
+  const btn = document.getElementById('downloadBtn');
+  btn.href=url; btn.download=name; btn.style.display='inline-block';
+  showResult(desc, url);
+}
+
+function showResult(desc, url){
+  document.getElementById('resultDesc').textContent = desc;
+  document.getElementById('resultBox').classList.add('show');
+}
+
+function showError(msg){
+  const el = document.getElementById('errorBox');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+
+// ═══ MODALS ═══
+function showUpgradeModal(){ document.getElementById('upgradeModal').classList.add('show') }
+function closeUpgradeModal(){ document.getElementById('upgradeModal').classList.remove('show') }
+function showLimitModal(){ document.getElementById('limitModal').classList.add('show') }
+function closeLimitModal(){ document.getElementById('limitModal').classList.remove('show') }
+
+// ═══ ADMIN ═══
+let adminStats = {
+  totalConversions: parseInt(localStorage.getItem('admin_total')||'2847'),
+  todayConversions: parseInt(localStorage.getItem('admin_today')||'143'),
+  premiumUsers: 47,
+  uptime: '99.9%'
+};
+
+function updateAdminStats(){
+  adminStats.totalConversions++;
+  adminStats.todayConversions++;
+  localStorage.setItem('admin_total', adminStats.totalConversions);
+  localStorage.setItem('admin_today', adminStats.todayConversions);
+}
+
+let currentAdminSection = 'overview';
+
+function switchAdmin(section, el){
+  currentAdminSection = section;
+  document.querySelectorAll('.admin-nav-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  const renders = {overview:renderAdminOverview,conversions:renderAdminConversions,tools:renderAdminTools,ads:renderAdminAds,server:renderAdminServer};
+  renders[section] && renders[section]();
+}
+
+function renderAdminOverview(){
+  const _ac = document.getElementById('adminContent'); if(!_ac) return; _ac.innerHTML = `
+    <div class="admin-title">Dashboard Overview</div>
+    <div class="admin-sub">Real-time platform statistics and performance metrics.</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Total Conversions</div><div class="kpi-value">${adminStats.totalConversions.toLocaleString()}</div><div class="kpi-change up">↑ 12% this week</div></div>
+      <div class="kpi-card"><div class="kpi-label">Today's Conversions</div><div class="kpi-value">${adminStats.todayConversions}</div><div class="kpi-change up">↑ 8% vs yesterday</div></div>
+      <div class="kpi-card"><div class="kpi-label">Premium Users</div><div class="kpi-value">${adminStats.premiumUsers}</div><div class="kpi-change up">↑ 3 this week</div></div>
+      <div class="kpi-card"><div class="kpi-label">Uptime</div><div class="kpi-value">${adminStats.uptime}</div><div class="kpi-change up">All systems normal</div></div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-header"><div class="admin-section-title">Conversions by Tool (Last 7 days)</div></div>
+      <div class="admin-section-body">
+        ${[['JPG to PDF',342],['PDF to Text',289],['PNG to PDF',234],['Image to WebP',198],['PDF to Images',176],['TXT to PDF',134]].map(([l,v])=>`
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">${l}</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(v/342*100)}%"></div></div>
+          <div class="chart-bar-val">${v}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-header"><div class="admin-section-title">Recent Activity</div></div>
+      <div class="admin-section-body">
+        <table class="table">
+          <thead><tr><th>Time</th><th>Tool</th><th>File Size</th><th>Status</th><th>User Type</th></tr></thead>
+          <tbody>
+            ${[['2 min ago','JPG to PDF','2.3 MB','success','Free'],['5 min ago','PDF to Text','4.1 MB','success','Premium'],['8 min ago','Image to WebP','1.7 MB','success','Free'],['12 min ago','PNG to PDF','3.2 MB','success','Free'],['15 min ago','PDF to Images','8.9 MB','success','Premium']].map(([t,tool,sz,st,ut])=>`
+            <tr>
+              <td style="color:var(--gray-400)">${t}</td>
+              <td><strong>${tool}</strong></td>
+              <td>${sz}</td>
+              <td><span class="status-badge active">✓ ${st}</span></td>
+              <td><span style="font-size:12px;color:${ut==='Premium'?'var(--blue)':'var(--gray-500)'};font-weight:600">${ut==='Premium'?'⭐ ':''}${ut}</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAdminConversions(){
+  const _ac = document.getElementById('adminContent'); if(!_ac) return; _ac.innerHTML = `
+    <div class="admin-title">Conversion History</div>
+    <div class="admin-sub">All file conversions processed by the platform.</div>
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <div class="admin-section-title">All Conversions</div>
+        <span style="font-size:12px;color:var(--gray-400)">${adminStats.totalConversions.toLocaleString()} total</span>
+      </div>
+      <div class="admin-section-body">
+        <table class="table">
+          <thead><tr><th>#</th><th>Tool</th><th>Input</th><th>Output</th><th>Size</th><th>Time</th><th>Status</th></tr></thead>
+          <tbody>
+            ${Array.from({length:10},(_,i)=>{
+              const tools=['JPG to PDF','PDF to Text','PNG to PDF','Image to WebP','PDF to Images'];
+              const t=tools[i%tools.length];
+              const mins=i*3+2;
+              return `<tr>
+                <td style="color:var(--gray-400)">#${adminStats.totalConversions-i}</td>
+                <td><strong>${t}</strong></td>
+                <td style="color:var(--gray-500);font-size:13px">.${t.split(' ')[0].toLowerCase()}</td>
+                <td style="color:var(--blue);font-size:13px">.${t.split(' ').pop().toLowerCase()}</td>
+                <td>${(Math.random()*9+0.5).toFixed(1)} MB</td>
+                <td style="color:var(--gray-400)">${mins} min ago</td>
+                <td><span class="status-badge active">✓ Done</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAdminTools(){
+  const _ac = document.getElementById('adminContent'); if(!_ac) return; _ac.innerHTML = `
+    <div class="admin-title">Manage Tools</div>
+    <div class="admin-sub">Enable or disable conversion tools across the platform.</div>
+    <div class="admin-section">
+      <div class="admin-section-body">
+        <table class="table">
+          <thead><tr><th>Tool</th><th>Category</th><th>Uses Today</th><th>Status</th><th>Enabled</th></tr></thead>
+          <tbody>
+            ${TOOLS.map((t,i)=>`<tr>
+              <td><strong>${t.title}</strong></td>
+              <td><span style="font-size:12px;padding:3px 10px;background:var(--blue-light);color:var(--blue);border-radius:100px;font-weight:600;text-transform:capitalize">${t.cat}</span></td>
+              <td>${Math.floor(Math.random()*80+10)}</td>
+              <td><span class="status-badge active">Active</span></td>
+              <td>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked onchange="toggleTool(this,'${t.id}')"/>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAdminAds(){
+  const _ac = document.getElementById('adminContent'); if(!_ac) return; _ac.innerHTML = `
+    <div class="admin-title">Advertisements</div>
+    <div class="admin-sub">Manage ad placements shown to free users.</div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kpi-card"><div class="kpi-label">Impressions Today</div><div class="kpi-value">1,284</div><div class="kpi-change up">↑ 6%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Click-Through Rate</div><div class="kpi-value">3.2%</div><div class="kpi-change up">Industry avg: 2.1%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Revenue Today</div><div class="kpi-value">$41.20</div><div class="kpi-change up">↑ $4.50</div></div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-header"><div class="admin-section-title">Ad Placements</div></div>
+      <div class="admin-section-body">
+        <table class="table">
+          <thead><tr><th>Placement</th><th>Type</th><th>Impressions</th><th>CTR</th><th>Active</th></tr></thead>
+          <tbody>
+            ${[['Homepage Banner','Display','542','4.1%'],['Converter Page Top','Display','398','2.8%'],['After Conversion','Interstitial','211','5.3%'],['Sidebar','Display','133','1.9%']].map(([p,t,imp,ctr])=>`
+            <tr>
+              <td><strong>${p}</strong></td>
+              <td><span style="font-size:12px;color:var(--gray-500)">${t}</span></td>
+              <td>${imp}</td>
+              <td style="color:var(--blue);font-weight:600">${ctr}</td>
+              <td><label class="toggle-switch"><input type="checkbox" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAdminServer(){
+  const _ac = document.getElementById('adminContent'); if(!_ac) return; _ac.innerHTML = `
+    <div class="admin-title">Server Usage</div>
+    <div class="admin-sub">Monitor infrastructure performance and resource utilization.</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">CPU Usage</div><div class="kpi-value">23%</div><div class="kpi-change up">Normal</div></div>
+      <div class="kpi-card"><div class="kpi-label">Memory</div><div class="kpi-value">41%</div><div class="kpi-change up">2.1 / 4 GB</div></div>
+      <div class="kpi-card"><div class="kpi-label">Storage</div><div class="kpi-value">18%</div><div class="kpi-change up">Temp files auto-purged</div></div>
+      <div class="kpi-card"><div class="kpi-label">Bandwidth</div><div class="kpi-value">2.4 GB</div><div class="kpi-change up">Today's total</div></div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-header"><div class="admin-section-title">Resource Utilization</div></div>
+      <div class="admin-section-body">
+        ${[['CPU',23,'low'],['Memory',41,'low'],['Disk I/O',67,'mid'],['Network',34,'low'],['Active Connections',12,'low']].map(([l,v,cls])=>`
+        <div class="server-meter">
+          <div class="server-meter-label"><span>${l}</span><span>${v}%</span></div>
+          <div class="meter-track"><div class="meter-fill ${cls}" style="width:${v}%"></div></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-header"><div class="admin-section-title">System Status</div></div>
+      <div class="admin-section-body">
+        <table class="table">
+          <thead><tr><th>Service</th><th>Status</th><th>Uptime</th><th>Last Check</th></tr></thead>
+          <tbody>
+            ${[['File Conversion Engine','Operational','99.9%','1 min ago'],['Storage Service','Operational','100%','1 min ago'],['CDN','Operational','99.8%','2 min ago'],['SSL Certificate','Valid','—','12 hrs ago'],['Auto-Delete Job','Operational','100%','5 min ago']].map(([s,st,u,lc])=>`
+            <tr><td><strong>${s}</strong></td><td><span class="status-badge active">✓ ${st}</span></td><td>${u}</td><td style="color:var(--gray-400)">${lc}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function toggleTool(el, id){ /* toggle logic */ }
+function toggleMobileMenu(){} // placeholder
+
+// ═══ UTILS ═══
+function readDataURL(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});
+}
+function readArrayBuffer(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsArrayBuffer(file);});
+}
+function loadImg(src){
+  return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src;});
+}
+function canvasToBlob(canvas,mime,q=0.92){
+  return new Promise(res=>canvas.toBlob(res,mime,q));
+}
+function formatBytes(b){
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+function changExt(name,ext){
+  return name.replace(/\.[^.]+$/,'')+'.'+ext;
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded',()=>{
+  if(typeof pdfjsLib!=='undefined')
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // Render home tool grid (first 8)
+  renderToolGrid(document.getElementById('homeToolsGrid'), TOOLS.slice(0,8));
+  renderToolGrid(document.getElementById('allToolsGrid'), TOOLS);
+
+  updateUsageUI();
+
+  // Close modals on backdrop click
+  ['upgradeModal','limitModal','premiumModal'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
+  });
+});
+</script>
+</body>
+</html>
