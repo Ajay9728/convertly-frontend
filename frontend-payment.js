@@ -8,7 +8,7 @@
  */
 
 // ── Config ────────────────────────────────────────────────────
-const BACKEND_URL = "http://localhost:4000"; // change in production
+const BACKEND_URL = "https://convertly-backend-cewx.onrender.com"; // change in production
 
 // ── State ────────────────────────────────────────────────────
 let userState = {
