@@ -791,7 +791,7 @@ footer{background:var(--gray-900);color:var(--gray-400);padding:48px 24px 32px}
     <div class="modal-price-row">
       <div class="modal-price">$9<sub>/month</sub></div>
     </div>
-    <button class="modal-upgrade-btn" onclick="activatePremium()">Start Premium — $9/mo →</button>
+    <button class="modal-upgrade-btn" id="modalUpgradeBtn" onclick="startCheckout()">Start Premium — $9/mo →</button>
     <button class="modal-cancel" onclick="closeUpgradeModal()">Maybe later</button>
   </div>
 </div>
@@ -811,7 +811,7 @@ footer{background:var(--gray-900);color:var(--gray-400);padding:48px 24px 32px}
     <div class="modal-price-row">
       <div class="modal-price">$9<sub>/month</sub></div>
     </div>
-    <button class="modal-upgrade-btn" onclick="activatePremium()">Upgrade Now →</button>
+    <button class="modal-upgrade-btn" onclick="startCheckout()">Upgrade Now →</button>
     <button class="modal-cancel" onclick="closeLimitModal()">Not now — wait until tomorrow</button>
   </div>
 </div>
@@ -918,14 +918,7 @@ function updateUsageUI(){
 }
 
 function activatePremium(){
-  localStorage.setItem('conv_premium','true');
-  closeUpgradeModal();
-  closeLimitModal();
-  updateUsageUI();
-  const _pm = document.getElementById('premiumModal'); if(_pm) _pm.classList.add('show');
-  // Update nav usage
-  const navUsage = document.getElementById('navUsage');
-  if(navUsage) navUsage.innerHTML = '<div class="dot" style="background:var(--blue)"></div><span>⭐ Premium</span>';
+  startCheckout();
 }
 
 // ═══ ADMIN AUTH ═══
